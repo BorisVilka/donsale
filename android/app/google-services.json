@@ -8,6 +8,42 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:567497229621:android:0009483356949f504af87c",
+        "android_client_info": {
+          "package_name": "com.donsale.main"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "567497229621-md6pm19skc36dnubou25eunr8pcgue2k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDL7PLGy2j6ygJF7EKiMSEOCYahTo-xFnk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "567497229621-md6pm19skc36dnubou25eunr8pcgue2k.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "567497229621-6vvc4b1m0sgelmohh72iivi6mr3t28c5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.salut"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:567497229621:android:b383430731684f684af87c",
         "android_client_info": {
           "package_name": "com.example.salut"
