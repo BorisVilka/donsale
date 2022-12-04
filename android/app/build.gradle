@@ -43,12 +43,12 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "com.example.donsale"
+        applicationId "com.example.salut"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-build-configuration.
         minSdkVersion 26
         targetSdkVersion 33
-        versionCode 2
+        versionCode 4
         versionName "1.1.0"
     }
 
@@ -57,6 +57,16 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig signingConfigs.debug
+        }
+    }
+    signingConfigs {
+        if (System.getenv("ggg.jks")) {
+            release {
+                storeFile file(System.getenv("ggg.jks"))
+                keyAlias System.getenv("key0")
+                keyPassword System.getenv("password")
+                storePassword System.getenv("password")
+            }
         }
     }
 }

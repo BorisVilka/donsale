@@ -72,8 +72,12 @@ class HomeState extends State<HomePage> {
                       ),
                       onChanged: (s) {
                         setState(() {
-                          data = list.list;
-                          data = data.where((value) => value.title.contains(search.text)).toList();
+                          var tmp = <Ads>[];
+                          for(Ads i in list.list) {
+                            if(i.title.contains(search.text.toString())) tmp.add(i);
+                          }
+                          data = tmp;
+                          print(data.length);
                         });
                       },
                     ),
@@ -83,7 +87,6 @@ class HomeState extends State<HomePage> {
                   customIcon = const Icon(Icons.search);
                   customSearchBar = const Text('Поиск');
                   data = list.list;
-                  data = data.where((value) => value.title.contains(search.text)).toList();
                 }
               });
             },
@@ -126,8 +129,11 @@ class HomeState extends State<HomePage> {
     ref.get().then((value) {
       list = (value.data() ?? AdsList(list: []));
       setState(() {
-        data = list.list;
-        data = data.takeWhile((value) => value.title.contains(search.text)).toList();
+        var tmp = <Ads>[];
+        for(Ads i in list.list) {
+          if(i.title.contains(search.text.toString())) tmp.add(i);
+        }
+        data = tmp;
       });
     });
     var fav = await DBProvider.db.getAll();
@@ -148,7 +154,7 @@ class HomeState extends State<HomePage> {
       padding: EdgeInsets.all(1),
       child: GestureDetector(
         onTap: (){
-          if(user!=null && data[ind].email!=user!.phoneNumber! || user==null) {
+          if(user!=null && data[ind].email!=user!.photoURL! || user==null) {
             Navigator.of(context).push(MaterialPageRoute(builder: (context)=>AdsPage(ads: data[ind])));
           } else {
             Navigator.of(context).push(MaterialPageRoute(builder: (context)=>NewPage(ads: data[ind])));

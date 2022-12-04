@@ -37,7 +37,7 @@ class ChatState extends State<ChatPage> {
       chat = Chat(
         id: widget.ads.photoUrl,
         email1: widget.ads.email,
-        email2: user.phoneNumber!,
+        email2: user.photoURL!,
         messages: [], ads: widget.ads
       );
     } else {
@@ -138,7 +138,7 @@ class ChatState extends State<ChatPage> {
                             .withConverter(fromFirestore: ChatList.fromFirestore, toFirestore:(ChatList list, _) => list.toFirestore());
                         ref.get().then((value) {
                           var list = (value.data() ?? ChatList(list: []));
-                          chat.messages.add(Message(txt: _text.text, phone: user.phoneNumber!, name: user.displayName!));
+                          chat.messages.add(Message(txt: _text.text, phone: user.photoURL!, name: user.displayName!));
                           if(init) {
                             list.list.add(chat);
                           } else {
@@ -173,10 +173,10 @@ class ChatState extends State<ChatPage> {
   Widget chatItem(BuildContext context, int ind) {
     return Container(
       width: double.infinity,
-      alignment: chat.messages[ind].phone==user.phoneNumber! ? Alignment.centerRight : Alignment.centerLeft,
+      alignment: chat.messages[ind].phone==user.photoURL! ? Alignment.centerRight : Alignment.centerLeft,
       padding: EdgeInsets.symmetric(vertical: 10),
       child: Card(
-        color: chat.messages[ind].phone==user.phoneNumber ? Colors.blue[100] : Colors.white,
+        color: chat.messages[ind].phone==user.photoURL ? Colors.blue[100] : Colors.white,
         child: Container(
           padding: EdgeInsets.only(left: 15,top:10,bottom: 10,right: 10),
           child: Text(chat.messages[ind].txt),

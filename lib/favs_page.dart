@@ -82,7 +82,7 @@ class FavoritesState extends State<FavoritesPage> {
         padding: EdgeInsets.all(1),
         child: GestureDetector(
           onTap: (){
-            if(user!=null && data[ind].email!=user!.phoneNumber! || user==null) {
+            if(user!=null && data[ind].email!=user!.photoURL! || user==null) {
               Navigator.of(context).push(MaterialPageRoute(builder: (context)=>AdsPage(ads: data[ind])));
             } else {
               Navigator.of(context).push(MaterialPageRoute(builder: (context)=>NewPage(ads: data[ind])));
@@ -108,7 +108,7 @@ class FavoritesState extends State<FavoritesPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(data[ind].date),
-                      if(user!=null && data[ind].email!=user!.phoneNumber! || user==null) IconButton(
+                      if(user!=null && data[ind].email!=user!.photoURL! || user==null) IconButton(
                         onPressed: () async {
                           if(contains(data[ind].photoUrl)) {
                             await DBProvider.db.removeFromFavs(data[ind].photoUrl);

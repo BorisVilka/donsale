@@ -1,6 +1,7 @@
 
 
 import 'package:Donsale/edit_user.dart';
+import 'package:Donsale/reg_page.dart';
 import 'package:Donsale/sign_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -59,10 +60,18 @@ class UserState extends State<UserPage> {
        ),
        const SizedBox(height: 40,),
        Center(
-         child: ElevatedButton(onPressed: () async {
-            await Navigator.of(context).push(MaterialPageRoute(builder: (context)=>SignInPage(method: "Войти")));
-            setState(() {});
-         }, child: const Text("Войти или зарегистрироваться")),
+         child: Column(
+           children: [
+             ElevatedButton(onPressed: () async {
+               await Navigator.of(context).push(MaterialPageRoute(builder: (context)=>SignInPage()));
+               setState(() {});
+             }, child: const Text("Войти ")),
+             ElevatedButton(onPressed: () async {
+               await Navigator.of(context).push(MaterialPageRoute(builder: (context)=>RegPage()));
+               setState(() {});
+             }, child: const Text("Зарегистрироваться")),
+           ],
+         )
        ),
      ],
     );
@@ -130,7 +139,7 @@ class UserState extends State<UserPage> {
                   children: [
                     Icon(Icons.phone),
                     SizedBox(width: 30,),
-                    Text(user?.phoneNumber ?? "")
+                    Text(user?.photoURL ?? "")
                   ],
                 ),
               ),

@@ -1,13 +1,9 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class SignInPage extends StatefulWidget {
-
-  String method;
-
-  SignInPage({required this.method});
 
   @override
   State<StatefulWidget> createState() {
@@ -38,47 +34,70 @@ class SignInState extends State<SignInPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
+              padding: const EdgeInsets.symmetric(horizontal: 40,vertical: 30),
               child: TextField(
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                     border: InputBorder.none,
-                    hintText: "Введите телефон",
+                    hintText: "Введите email",
                     fillColor: Colors.black12,
                     filled: true
                 ),
                 controller: email,
               ),
-              padding: EdgeInsets.symmetric(horizontal: 40,vertical: 30),
             ),
-            if(codesent)  Container(
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 40,vertical: 30),
               child: TextField(
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                     border: InputBorder.none,
-                    hintText: "Введите код",
+                    hintText: "Введите пароль",
                     fillColor: Colors.black12,
+
                     filled: true
                 ),
+                obscureText: true,
+                enableSuggestions: false,
+                autocorrect: false,
                 controller: pass,
               ),
-              padding: EdgeInsets.symmetric(horizontal: 40,vertical: 30),
             ),
-            SizedBox(height: 35,),
+            const SizedBox(height: 35,),
             ElevatedButton(onPressed: () async {
-              if(codesent) {
+              if(pass.text.isNotEmpty && email.text.isNotEmpty) {
                 setState(() {
                   loading = true;
                 });
-                final tmp = await FirebaseAuth
-                    .instance
-                    .signInWithCredential(PhoneAuthProvider.credential(verificationId: _id, smsCode: pass.text));
-                if(tmp.user!.displayName==null) await tmp.user!.updateDisplayName("Пользователь");
-                Navigator.of(context).pop();
-              } else {
-                _submitPhoneNumber();
-                setState(() {
-                  codesent = true;
-                });
+                try {
+                  var usCred = await FirebaseAuth.instance.signInWithEmailAndPassword(email: email.text.trim(), password: pass.text.trim());
+                  Navigator.of(context).pop();
+                } on FirebaseAuthException catch(e) {
+                  if (e.code == 'user-not-found') {
+                    Fluttertoast.showToast(
+                        msg: "Пользователь не найден",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.CENTER,
+                        timeInSecForIosWeb: 1,
+                        backgroundColor: Colors.white,
+                        textColor: Colors.black,
+                        fontSize: 16.0
+                    );
+                  } else if (e.code == 'wrong-password') {
+                    Fluttertoast.showToast(
+                        msg: "Неверный пароль",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.CENTER,
+                        timeInSecForIosWeb: 1,
+                        backgroundColor: Colors.white,
+                        textColor: Colors.black,
+                        fontSize: 16.0
+                    );
+                  }
+                  setState(() {
+                    loading = false;
+                  });
+                }
               }
-            }, child: SizedBox(child: Text("Войти или зарегистрироваться",textAlign: TextAlign.center,),width: 250,)),
+            }, child: const SizedBox(width: 250,child: Text("Войти",textAlign: TextAlign.center,),)),
           ],
         ),
       ),

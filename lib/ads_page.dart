@@ -101,7 +101,7 @@ class AdsState extends State<AdsPage> {
                 child: Text("${ads.price} ${getCurrency()}", style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
               ),
               Padding(padding: EdgeInsets.symmetric(vertical: 10),
-                child: Text("${ads.address} ${getCurrency()}", style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+                child: Text(ads.address, style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
               ),
               if(user!=null) Container(
                 width: double.infinity,
@@ -114,7 +114,7 @@ class AdsState extends State<AdsPage> {
                     ref.get().then((value) {
                       var list1 = (value.data() ?? ChatList(list: []));
                       var data1 = list1.list;
-                      data1 = data1.takeWhile((value) => value.email1==user!.phoneNumber! || value.email2==user!.phoneNumber!).toList();
+                      data1 = data1.takeWhile((value) => value.email1==user!.photoURL! || value.email2==user!.photoURL!).toList();
                       Chat? chat;
                       for(Chat i in data1) {
                         if(i.ads.photoUrl==ads.photoUrl) {

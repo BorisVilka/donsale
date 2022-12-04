@@ -96,8 +96,11 @@ class _AddState extends State<AddPage> {
     ref.get().then((value) {
       list = (value.data() ?? AdsList(list: []));
       setState(() {
-        data = list.list;
-        data = data.takeWhile((value) => value.email==user!.phoneNumber!).toList();
+        var tmp = <Ads>[];
+        for(Ads i in list.list) {
+           if(i.email == user!.photoURL!) tmp.add(i);
+        }
+         data = tmp;
       });
     });
     var fav = await DBProvider.db.getAll();
@@ -145,7 +148,7 @@ class _AddState extends State<AddPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(data[ind].date),
-                      if(user!=null && data[ind].email!=(user!.phoneNumber ?? "") || user==null) IconButton(
+                      if(user!=null && data[ind].email!=user!.photoURL! || user==null) IconButton(
                         onPressed: () async {
                           if(contains(data[ind].photoUrl)) {
                             await DBProvider.db.removeFromFavs(data[ind].photoUrl);

@@ -219,7 +219,7 @@ class NewState extends State<NewPage> {
                         desc: desc.text,
                         author: FirebaseAuth.instance.currentUser!.displayName ?? "Пользователь",
                         photoUrl: UniqueKey().hashCode.toString(),
-                        email: FirebaseAuth.instance.currentUser!.phoneNumber!,
+                        email: FirebaseAuth.instance.currentUser!.photoURL!,
                         price: price.text.toString(),
                         date: formatter.format(date),
                         address: address.text

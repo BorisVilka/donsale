@@ -123,11 +123,21 @@ class ChatsState extends State<ChatsPage> {
         .withConverter(fromFirestore: ChatList.fromFirestore, toFirestore:(ChatList list, _) => list.toFirestore());
     print("get");
     ref.get().then((value) {
-      list = (value.data() ?? ChatList(list: [])) as ChatList;
+      list = (value.data() ?? ChatList(list: []));
       //print(list.list.length+" len");
       setState(() {
-        data = list.list;
-        data = data.takeWhile((value) => value.email1==user!.phoneNumber! || value.email2==user!.phoneNumber!).toList();
+        var tmp = <Chat>[];
+        for(Chat i in list.list) {
+          print(i.email2+" "+i.email1+" "+user!.photoURL!);
+          print((i.email1 == user!.photoURL! ||
+             i.email2 == user!.photoURL!));
+          if(i.email1 == user!.photoURL! ||
+              i.email2 == user!.photoURL!) tmp.add(i);
+        }
+        /*data = list.list.takeWhile((value) => value.email1 == user!.photoURL! ||
+                      value.email2 == user!.photoURL!);*/
+        data = tmp;
+        print(data.length);
         //data = data.takeWhile((value) => contains(value.photoUrl) && (user!=null && value.email!=(user!.email ?? "") || user==null)).toList();
       });
     });
