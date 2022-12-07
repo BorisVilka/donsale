@@ -1,8 +1,10 @@
 
 import 'package:Donsale/objects/ads.dart';
+import 'package:Donsale/objects/ads_list.dart';
 import 'package:Donsale/objects/chat.dart';
 import 'package:Donsale/objects/chat_list.dart';
 import 'package:Donsale/objects/message.dart';
+import 'package:Donsale/review_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +28,8 @@ class ChatState extends State<ChatPage> {
   late Chat chat;
   late bool init;
   bool sub = false;
+  bool exist = true;
+  List<Ads> data = [];
   User user = FirebaseAuth.instance.currentUser!;
   TextEditingController _text = TextEditingController();
 
@@ -35,16 +39,33 @@ class ChatState extends State<ChatPage> {
     if(widget.chat==null) {
       init = true;
       chat = Chat(
-        id: widget.ads.photoUrl,
+        id: widget.ads.id.toString(),
         email1: widget.ads.email,
         email2: user.photoURL!,
-        messages: [], ads: widget.ads
+        messages: [], ads: widget.ads,
+        review: -1
       );
     } else {
       init = false;
       chat = widget.chat!;
     }
     print(chat.ads.title);
+    final ref = FirebaseFirestore.instance.collection("main")
+        .doc("ads")
+        .withConverter(fromFirestore: AdsList.fromFirestore, toFirestore:(AdsList list, _) => list.toFirestore());
+    ref.get().then((value) {
+      var list = (value.data() ?? AdsList(list: []));
+      setState(() {
+        data = list.list;
+        exist = false;
+        for(Ads i in data) {
+          if(i.id==chat.ads.id) {
+            exist = true;
+            break;
+          }
+        }
+      });
+    });
     if(!init) {
       FirebaseFirestore.instance
           .collection("main")
@@ -53,7 +74,7 @@ class ChatState extends State<ChatPage> {
           .listen((event) {
             var tmp = ChatList.fromFirestore(event, null);
             for(Chat i in tmp.list) {
-              if(i.email1==chat.email1 && i.email2==chat.email2 && i.ads.photoUrl==chat.ads.photoUrl) {
+              if(i.email1==chat.email1 && i.email2==chat.email2 && i.ads.id==chat.ads.id) {
                 setState(() {
                   chat = i;
                 });
@@ -63,7 +84,16 @@ class ChatState extends State<ChatPage> {
       });
     }
   }
-
+  bool contains() {
+    bool ans = false;
+    for(Ads i in data) {
+      if(i.id==chat.ads.id) {
+        ans = true;
+        break;
+      }
+    }
+    return ans;
+  }
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
@@ -77,11 +107,19 @@ class ChatState extends State<ChatPage> {
             Align(
               alignment: Alignment.topCenter,
               child: Container(
-                  alignment: Alignment.centerLeft,
+                  alignment: Alignment.topLeft,
                   color: Colors.white,
-                  height: 50,
-                  padding: EdgeInsets.only(left: 30),
-                  child: Text(chat.ads.title,textAlign: TextAlign.start,style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18),)
+                  height: 65,
+                  padding: EdgeInsets.only(left: 30,top: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(chat.ads.title,textAlign: TextAlign.start,style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18),),
+                      SizedBox(height: 5,),
+                      if(!exist) Text("Объявление снято с публикации")
+                    ],
+                  )
               ),
             ),
             Align(
@@ -97,7 +135,7 @@ class ChatState extends State<ChatPage> {
             ),
             Align(
               alignment: Alignment.bottomCenter,
-              child: Container(
+              child: exist ?  Container(
                 padding: EdgeInsets.all(10),
                 color: Colors.white,
                 child: Row(
@@ -115,53 +153,74 @@ class ChatState extends State<ChatPage> {
                     ),
                     IconButton(onPressed: () async {
                       if(_text.text.isEmpty) return;
-                        if(init && !sub) {
-                          sub = false;
-                          FirebaseFirestore.instance
-                              .collection("main")
-                              .doc("chats")
-                              .snapshots()
-                              .listen((event) {
-                            var tmp = ChatList.fromFirestore(event, null);
-                            for(Chat i in tmp.list) {
-                              if(i.email1==chat.email1 && i.email2==chat.email2 && i.ads.photoUrl==chat.ads.photoUrl) {
-                                setState(() {
-                                  chat = i;
-                                });
-                                break;
-                              }
-                            }
-                          });
-                        }
-                        final ref = FirebaseFirestore.instance.collection("main")
+                      if(init && !sub) {
+                        sub = false;
+                        FirebaseFirestore.instance
+                            .collection("main")
                             .doc("chats")
-                            .withConverter(fromFirestore: ChatList.fromFirestore, toFirestore:(ChatList list, _) => list.toFirestore());
-                        ref.get().then((value) {
-                          var list = (value.data() ?? ChatList(list: []));
-                          chat.messages.add(Message(txt: _text.text, phone: user.photoURL!, name: user.displayName!));
-                          if(init) {
-                            list.list.add(chat);
-                          } else {
-                            var ind = 0;
-                            for(int j = 0;j<list.list.length;j++) {
-                              final i = list.list[j];
-                              if(i.email1==chat.email1 && i.email2==chat.email2 && i.ads.photoUrl==chat.ads.photoUrl) {
-                                ind = j;
-                                break;
-                              }
+                            .snapshots()
+                            .listen((event) {
+                          var tmp = ChatList.fromFirestore(event, null);
+                          for(Chat i in tmp.list) {
+                            if(i.email1==chat.email1 && i.email2==chat.email2 && i.ads.id==chat.ads.id) {
+                              setState(() {
+                                chat = i;
+                              });
+                              break;
                             }
-                            list.list[ind] = chat;
                           }
-                          FirebaseFirestore.instance
-                              .collection("main")
-                              .doc("chats")
-                              .set(list.toFirestore());
-                          _text.text = "";
                         });
+                      }
+                      final ref = FirebaseFirestore.instance.collection("main")
+                          .doc("chats")
+                          .withConverter(fromFirestore: ChatList.fromFirestore, toFirestore:(ChatList list, _) => list.toFirestore());
+                      ref.get().then((value) {
+                        var list = (value.data() ?? ChatList(list: []));
+                        chat.messages.add(Message(txt: _text.text, phone: user.photoURL!, name: user.displayName!));
+                        if(init) {
+                          list.list.add(chat);
+                        } else {
+                          var ind = 0;
+                          for(int j = 0;j<list.list.length;j++) {
+                            final i = list.list[j];
+                            if(i.email1==chat.email1 && i.email2==chat.email2 && i.ads.id==chat.ads.id) {
+                              ind = j;
+                              break;
+                            }
+                          }
+                          list.list[ind] = chat;
+                        }
+                        FirebaseFirestore.instance
+                            .collection("main")
+                            .doc("chats")
+                            .set(list.toFirestore());
+                        _text.text = "";
+                      });
                     }, icon: Icon(Icons.send))
                   ],
                 ),
-              ),
+              )
+                  : ((chat.review<0 && chat.ads.email!=user.photoURL) ? Container(
+                margin: const EdgeInsets.only(bottom: 10,left: 20,right: 20),
+                width: double.infinity,
+                child: ElevatedButton(onPressed: () async {
+                  chat.review = await  Navigator.of(context).push(MaterialPageRoute(builder: (ctx)=>ReviewPage(chat: chat)));
+                  setState(() {});
+                  FirebaseFirestore.instance.collection("main")
+                      .doc("chats")
+                      .withConverter(fromFirestore: ChatList.fromFirestore, toFirestore:(ChatList list, _) => list.toFirestore()).get().then((value) {
+                        var list = value.data() ?? ChatList(list: []);
+                        for(Chat i in list.list) {
+                          if(i.id == chat.id && i.email2==chat.email2 && i.email1==chat.email1) {
+                            i.review = chat.review;
+                            break;
+                          }
+                        }
+                        FirebaseFirestore.instance.collection("main").doc("chats").set(list.toFirestore());
+                  });
+
+                }, child: const Text("Оставить отзыв")),
+              ) : const Padding(padding: EdgeInsets.only(bottom: 10),child: Text("Спасибо, что оставили отзыв",style: TextStyle(fontSize: 20),),)),
             )
           ],
         ),

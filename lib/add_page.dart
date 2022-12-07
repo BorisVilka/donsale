@@ -9,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 class AddPage extends StatefulWidget {
 
 
@@ -21,7 +22,6 @@ class _AddState extends State<AddPage> {
   User? user = FirebaseAuth.instance.currentUser;
   List<Ads> data = [];
   List<FavItem> favs = [];
-  Map<String, String> urls = {};
   bool first = false;
 
   @override
@@ -53,12 +53,33 @@ class _AddState extends State<AddPage> {
   }
 
   Widget buildEmpty() {
-    return const Center(
-      child: Padding(padding: EdgeInsets.all(20),
-        child: Text("Войдите или зарегистрируйтесь, чтобы добавлять объявления",
-          style: TextStyle(fontSize: 20),
-          textAlign: TextAlign.center,
-        ),
+    return Container(
+        alignment: Alignment.center,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text("Войдите или зарегистрируйтесь, чтобы добавлять объявления",
+              style: TextStyle(fontSize: 20),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10,),
+            ElevatedButton(onPressed: () async {
+              launchTelegram();
+            }, child: Container(
+              width: 200,
+              child:  Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.send),
+                  SizedBox(width: 20,),
+                  Text("Поддержка")
+                ],
+              ),
+            )
+            ),
+          ],
       ),
     );
   }
@@ -115,13 +136,6 @@ class _AddState extends State<AddPage> {
     return false;
   }
   Widget buildItem(BuildContext context, int ind) {
-    if(!urls.containsKey(data[ind].photoUrl)) {
-      FirebaseStorage.instance.ref().child(data[ind].photoUrl+".jpg").getDownloadURL().then((value) {
-        setState(() {
-          urls[data[ind].photoUrl] = value;
-        });
-      });
-    }
     return Container(
         padding: EdgeInsets.all(1),
         child: GestureDetector(
@@ -135,12 +149,13 @@ class _AddState extends State<AddPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  urls.containsKey(data[ind].photoUrl) ?
-                  Image.network(
-                    urls[data[ind].photoUrl]!,
-                    fit: BoxFit.scaleDown,
-                  ) :
-                  const CircularProgressIndicator(),
+                  Center(
+                    child: Image.network(
+                      data[ind].photos[0],
+                      fit: BoxFit.scaleDown,
+                    ),
+                  ),
+                  SizedBox(height: 5,),
                   Text(data[ind].title,textAlign: TextAlign.start,style: TextStyle(fontWeight: FontWeight.bold),),
                   SizedBox(height: 3,),
                   Text("${data[ind].price} ${getCurrency()}",textAlign: TextAlign.start,),
@@ -150,11 +165,11 @@ class _AddState extends State<AddPage> {
                       Text(data[ind].date),
                       if(user!=null && data[ind].email!=user!.photoURL! || user==null) IconButton(
                         onPressed: () async {
-                          if(contains(data[ind].photoUrl)) {
-                            await DBProvider.db.removeFromFavs(data[ind].photoUrl);
+                          if(contains(data[ind].photos[0])) {
+                            await DBProvider.db.removeFromFavs(data[ind].photos[0]);
                             setState(() {
                               for(FavItem i in favs) {
-                                if(i.id_ads==data[ind].photoUrl) {
+                                if(i.id_ads==data[ind].photos[0]) {
                                   setState(() {
                                     favs.remove(i);
                                   });
@@ -166,13 +181,13 @@ class _AddState extends State<AddPage> {
                             final db = await DBProvider.db.database;
                             var table = await db!.rawQuery("SELECT MAX(id)+1 as id FROM MyDraft");
                             int id = table.first["id"]==null ? 0 : table.first["id"] as int;
-                            var tmp = FavItem(id: id, id_ads: data[ind].photoUrl);
+                            var tmp = FavItem(id: id, id_ads: data[ind].photos[0]);
                             setState(() {
                               favs.add(tmp);
                             });
                             DBProvider.db.insert(tmp);
                           }
-                        }, icon: contains(data[ind].photoUrl)
+                        }, icon: contains(data[ind].photos[0])
                           ? Icon(Icons.favorite, color: Colors.red,) : Icon(Icons.favorite_border),
                       )
 
@@ -188,5 +203,14 @@ class _AddState extends State<AddPage> {
   String getCurrency() {
     var format = NumberFormat.simpleCurrency(locale: "ru");
     return format.currencySymbol;
+  }
+  void launchTelegram() async{
+    String url =
+        "https://t.me/helpdonsale";
+    print("launchingUrl: $url");
+    if (await canLaunch(url)) {
+      await launch(url);
+    }
+
   }
 }

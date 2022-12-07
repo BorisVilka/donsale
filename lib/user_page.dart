@@ -1,11 +1,18 @@
 
 
+import 'dart:math';
+
 import 'package:Donsale/edit_user.dart';
+import 'package:Donsale/objects/review.dart';
+import 'package:Donsale/objects/review_list.dart';
 import 'package:Donsale/reg_page.dart';
 import 'package:Donsale/sign_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:sprintf/sprintf.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 
 class UserPage extends StatefulWidget {
@@ -19,13 +26,21 @@ class UserPage extends StatefulWidget {
 }
 
 class UserState extends State<UserPage> {
-  
+
   User? user;
-  
+  List<Review> reviews = [];
+  int count = 0;
+  double revs = 0;
+  bool first = false;
+
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
         print(user);
+        if(!first) {
+           getData();
+          first = true;
+        }
        return Scaffold(
          appBar: AppBar(backgroundColor: Colors.brown[200],title: const Text("Профиль"),),
          body:
@@ -46,7 +61,25 @@ class UserState extends State<UserPage> {
        }
     });
   }
-  
+  void getData() async {
+
+    FirebaseFirestore.instance.collection("main").doc("reviews")
+        .withConverter(fromFirestore: ReviewList.fromFirestore, toFirestore:(ReviewList list, _) => list.toFirestore())
+        .get().then((value)  {
+      var list = (value.data() ?? ReviewList(list: [])) as ReviewList;
+      setState(() {
+        reviews = list.list;
+        for(Review i in reviews) {
+          if(i.phone1==user!.photoURL) {
+            count++;
+            revs += (i.count+1);
+          }
+        }
+        if(count!=0) revs = (revs/count);
+      });
+    });
+  }
+
   Widget buildEmpty() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -70,17 +103,31 @@ class UserState extends State<UserPage> {
                await Navigator.of(context).push(MaterialPageRoute(builder: (context)=>RegPage()));
                setState(() {});
              }, child: const Text("Зарегистрироваться")),
+             const SizedBox(height: 10,),
+             ElevatedButton(onPressed: () async {
+               launchTelegram();
+             }, child: Container(
+               width: 200,
+               child:  Row(
+                 crossAxisAlignment: CrossAxisAlignment.center,
+                 mainAxisAlignment: MainAxisAlignment.center,
+                 children: [
+                   Icon(Icons.send),
+                   SizedBox(width: 20,),
+                   Text("Поддержка")
+                 ],
+               ),
+             )
+             ),
            ],
          )
        ),
      ],
     );
   }
-  
+  var colors = [Colors.brown[200], Colors.blue, Colors.red, Colors.yellowAccent, Colors.amber, Colors.purple, Colors.lightGreenAccent, Colors.tealAccent, Colors.deepOrangeAccent];
+
   Widget buildNotEmpty() {
-    List<Widget> stars = getStars(5);
-    stars.insert(0, Padding(padding: const EdgeInsets.only(right: 10),
-    child: Text("5.0",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 16),),));
     return Stack(
       children: [
         Align(
@@ -88,7 +135,7 @@ class UserState extends State<UserPage> {
           child: Column(
             children: [
               Container(
-                  padding: const EdgeInsets.only(top: 20,left: 30,right: 30,bottom: 30),
+                  padding: const EdgeInsets.only(top: 20,left: 30,right: 30,bottom: 10),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -108,20 +155,26 @@ class UserState extends State<UserPage> {
                               )
                             ],
                           ),
-                          Container(
-                            child: Row(
+                          if(count>0) Container(
+                            child:  count>0 ? Row(
                               mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.center,
                               mainAxisSize: MainAxisSize.max,
-                              children: stars,
-                            ),
-                            padding: EdgeInsets.only(bottom: 10),
+                              children: [
+                                Text(sprintf('%1.1f',[revs])),
+                                Container(
+                                  height: 30,
+                                  width: 70,
+                                  padding: EdgeInsets.symmetric(horizontal: 10),
+                                  child: getStars(),
+                                ),
+                                Text("$count отзывов")
+                              ],
+                            ) : Text("Нет отзывов"),
                           ),
-                          Text("Нет отзывов")
                         ],
                       ),
                       CircleAvatar(
-                        backgroundColor: Colors.green,
+                        backgroundColor: colors[Random().nextInt(colors.length)],
                         radius: 40,
                         child: Center(
                           child: Text(
@@ -134,7 +187,7 @@ class UserState extends State<UserPage> {
                   )
               ),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 30),
+                padding: EdgeInsets.only(left: 30,right: 30,bottom: 10),
                 child: Row(
                   children: [
                     Icon(Icons.phone),
@@ -149,6 +202,7 @@ class UserState extends State<UserPage> {
                   height: 60,
                   color: Colors.white,
                   padding: EdgeInsets.all(10),
+                  margin: EdgeInsets.symmetric(horizontal: 10),
                   child: Center(
                     child: Text("Редактировать профиль",style: TextStyle(color: Colors.blue),),
                   ),
@@ -159,6 +213,24 @@ class UserState extends State<UserPage> {
                     user = FirebaseAuth.instance.currentUser;
                   });
                 },
+              ),
+              const SizedBox(height: 10,),
+              Container(
+                child: ElevatedButton(onPressed: () async {
+                  launchTelegram();
+                }, child: Container(
+                  child:  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.send),
+                      SizedBox(width: 20,),
+                      Text("Поддержка")
+                    ],
+                  ),
+                )
+                ),
+                margin: EdgeInsets.symmetric(horizontal: 10),
               ),
             ],
           ),
@@ -187,11 +259,23 @@ class UserState extends State<UserPage> {
     );
   }
 
-  List<Widget> getStars(int n) {
-    List<Widget> a = [];
-    for(int i = 0;i<n;i++) {
-      a.add(Icon(Icons.star,color: Colors.amber[700],size: 13,));
+  Widget getStars() {
+    return ListView.builder(itemBuilder: (ctx,ind) {
+      return Icon(Icons.star, size: 10, color: Colors.amber,);
+    },
+      shrinkWrap: false,
+      scrollDirection: Axis.horizontal,
+      itemCount: revs.round(),
+    );
+  }
+
+  void launchTelegram() async{
+    String url =
+        "https://t.me/helpdonsale";
+    print("launchingUrl: $url");
+    if (await canLaunch(url)) {
+      await launch(url);
     }
-    return a;
+
   }
 }

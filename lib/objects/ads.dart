@@ -3,13 +3,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Ads {
 
- String email, title, desc, author, photoUrl, price, date, address;
+ String email, title, desc, author, price, date, address;
+ List<String> photos;
+ int id, last;
 
  Ads({
    required this.email, required this.title, required this.desc,
-   required this.author, required this.photoUrl,
+   required this.author, required this.photos,
    required this.price, required this.date,
-   required this.address
+   required this.address, required this.id,
+   required this.last
  });
 
  factory Ads.fromFirestore(
@@ -19,10 +22,12 @@ class Ads {
        title:data['title'],
        desc: data['desc'],
        author: data['author'],
-       photoUrl: data['photoUrl'],
+       photos: List<String>.from(data['photoUrl']),
         date: data['date'],
         price: data['price'],
-    address: data['address']
+    address: data['address'],
+    id: data['id'],
+    last: data['last']
    );
  }
 
@@ -32,10 +37,12 @@ class Ads {
      'title': title,
      'desc': desc,
      'author': author,
-     'photoUrl': photoUrl,
+     'photoUrl': photos,
      'date': date,
      'price':price,
-     'address':address
+     'address':address,
+     'id': id,
+     'last': last
    };
  }
 

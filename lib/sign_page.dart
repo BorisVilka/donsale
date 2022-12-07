@@ -36,31 +36,36 @@ class SignInState extends State<SignInPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 40,vertical: 30),
               child: TextField(
-                decoration: const InputDecoration(
-                    border: InputBorder.none,
+                decoration: InputDecoration(
                     hintText: "Введите email",
                     fillColor: Colors.black12,
-                    filled: true
+                    filled: true,
+                    errorText: email.text.isNotEmpty ? null : "Введите email"
                 ),
                 controller: email,
+                keyboardType: TextInputType.emailAddress,
+                enableSuggestions: true,
+                autocorrect: true,
+                onChanged: (s) {setState(() {});},
               ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 40,vertical: 30),
               child: TextField(
-                decoration: const InputDecoration(
-                    border: InputBorder.none,
+                decoration: InputDecoration(
                     hintText: "Введите пароль",
                     fillColor: Colors.black12,
-
-                    filled: true
+                    filled: true,
+                    errorText: pass.text.isNotEmpty ? null : "Введите пароль"
                 ),
                 obscureText: true,
                 enableSuggestions: false,
                 autocorrect: false,
                 controller: pass,
+                onChanged: (s) {setState(() {});},
               ),
             ),
+            Text("Пароль должен быть длиннее 6 символов"),
             const SizedBox(height: 35,),
             ElevatedButton(onPressed: () async {
               if(pass.text.isNotEmpty && email.text.isNotEmpty) {

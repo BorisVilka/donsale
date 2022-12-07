@@ -48,6 +48,9 @@ dependencies:
   url_launcher: ^6.1.6
   flutter_launcher_icons: ^0.10.0
   firebase_app_check: ^0.0.9+1
+  full_screen_image_null_safe: ^2.0.0
+  zoom_widget: ^2.0.0
+  sprintf: ^7.0.0
 
 dependency_overrides:
   firebase_core_platform_interface: 4.5.1

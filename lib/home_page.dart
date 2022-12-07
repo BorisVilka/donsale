@@ -26,7 +26,6 @@ class HomeState extends State<HomePage> {
   Icon customIcon = const Icon(Icons.search);
   Widget customSearchBar = const Text('Главная');
   List<Ads> data = [];
-  Map<String, String> urls = {};
   List<FavItem> favs = [];
   bool first = false;
   TextEditingController search = TextEditingController();
@@ -95,11 +94,17 @@ class HomeState extends State<HomePage> {
         ],
       ),
      body: GridView.builder(
-       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2,
+        crossAxisSpacing: 5,
+         mainAxisSpacing: 5,
+         childAspectRatio: 0.7
+       ),
        itemBuilder: (_, index) {
          return buildItem(_, index);
        },
+       shrinkWrap: false,
        itemCount: data.length,
+
      ),
      backgroundColor: Colors.grey[100],
    );
@@ -143,15 +148,7 @@ class HomeState extends State<HomePage> {
   }
 
   Widget buildItem(BuildContext context, int ind) {
-     if(!urls.containsKey(data[ind].photoUrl)) {
-       FirebaseStorage.instance.ref().child(data[ind].photoUrl+".jpg").getDownloadURL().then((value) {
-       setState(() {
-         urls[data[ind].photoUrl] = value;
-       });
-     });
-     }
     return Container(
-      padding: EdgeInsets.all(1),
       child: GestureDetector(
         onTap: (){
           if(user!=null && data[ind].email!=user!.photoURL! || user==null) {
@@ -163,32 +160,32 @@ class HomeState extends State<HomePage> {
         child: Card(
           color: Colors.white,
           child: Container(
-            padding: EdgeInsets.only(left: 5,right: 5,top: 5),
+           padding: EdgeInsets.only(left: 5,right: 5,top: 5),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                urls.containsKey(data[ind].photoUrl) ?
                 Center(
                   child:  Image.network(
-                    urls[data[ind].photoUrl]!,
+                    data[ind].photos[0],
                     fit: BoxFit.scaleDown,
-                    height: 100,
+                    height: 160,
                   ),
-                ) :
-                const CircularProgressIndicator(),
+                ),
+                SizedBox(height: 20,),
                 Text(data[ind].title,textAlign: TextAlign.start,style: TextStyle(fontWeight: FontWeight.bold),),
                 Text("${data[ind].price} ${getCurrency()}",textAlign: TextAlign.start,),
+                if(!(user!=null && data[ind].email!=(user!.photoURL ?? "") || user==null)) SizedBox(height: 16,),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(data[ind].date),
-                    if(user!=null && data[ind].email!=(user!.phoneNumber ?? "") || user==null) IconButton(
+                    if(user!=null && data[ind].email!=(user!.photoURL ?? "") || user==null) IconButton(
                       onPressed: () async {
-                        if(contains(data[ind].photoUrl)) {
-                          await DBProvider.db.removeFromFavs(data[ind].photoUrl);
+                        if(contains(data[ind].id.toString())) {
+                          await DBProvider.db.removeFromFavs(data[ind].id.toString());
                           setState(() {
                             for(FavItem i in favs) {
-                              if(i.id_ads==data[ind].photoUrl) {
+                              if(i.id_ads==data[ind].photos[0]) {
                                 setState(() {
                                   favs.remove(i);
                                 });
@@ -200,13 +197,13 @@ class HomeState extends State<HomePage> {
                           final db = await DBProvider.db.database;
                           var table = await db!.rawQuery("SELECT MAX(id)+1 as id FROM MyDraft");
                           int id = table.first["id"]==null ? 0 : table.first["id"] as int;
-                          var tmp = FavItem(id: id, id_ads: data[ind].photoUrl);
+                          var tmp = FavItem(id: id, id_ads: data[ind].id.toString());
                           setState(() {
                             favs.add(tmp);
                           });
                           DBProvider.db.insert(tmp);
                         }
-                      }, icon: contains(data[ind].photoUrl)
+                      }, icon: contains(data[ind].id.toString())
                         ? Icon(Icons.favorite, color: Colors.red,) : Icon(Icons.favorite_border),
                     )
                   ],
@@ -226,7 +223,7 @@ class HomeState extends State<HomePage> {
   }
   Future<Widget> _getImage(BuildContext context, int ind) async {
    Widget m;
-   var st = (await FirebaseStorage.instance.ref().child(data[ind].photoUrl+".jpg").getDownloadURL().onError((error, stackTrace) {
+   var st = (await FirebaseStorage.instance.ref().child("${data[ind].photos[0]}.jpg").getDownloadURL().onError((error, stackTrace) {
      print("error 1");
      setState(() {
        m = FlutterLogo();

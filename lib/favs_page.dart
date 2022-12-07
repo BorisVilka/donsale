@@ -23,8 +23,7 @@ class FavoritesState extends State<FavoritesPage> {
 
   List<Ads> data = [];
   List<FavItem> favs = [];
-  Map<String, String> urls = {};
-  bool first = false;
+   bool first = false;
   User? user = FirebaseAuth.instance.currentUser;
   
   @override
@@ -56,7 +55,7 @@ class FavoritesState extends State<FavoritesPage> {
       list = (value.data() ?? AdsList(list: []));
       setState(() {
         data = list.list;
-        data = data.takeWhile((value) => contains(value.photoUrl) && (user!=null && value.email!=(user!.phoneNumber ?? "") || user==null)).toList();
+        data = data.takeWhile((value) => contains(value.id.toString()) && (user!=null && value.email!=(user!.photoURL ?? "") || user==null)).toList();
       });
     });
     var fav = await DBProvider.db.getAll();
@@ -71,13 +70,6 @@ class FavoritesState extends State<FavoritesPage> {
     return false;
   }
   Widget buildItem(BuildContext context, int ind) {
-    if(!urls.containsKey(data[ind].photoUrl)) {
-      FirebaseStorage.instance.ref().child(data[ind].photoUrl+".jpg").getDownloadURL().then((value) {
-        setState(() {
-          urls[data[ind].photoUrl] = value;
-        });
-      });
-    }
     return Container(
         padding: EdgeInsets.all(1),
         child: GestureDetector(
@@ -95,12 +87,13 @@ class FavoritesState extends State<FavoritesPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  urls.containsKey(data[ind].photoUrl) ?
-                  Image.network(
-                    urls[data[ind].photoUrl]!,
-                    fit: BoxFit.scaleDown,
-                  ) :
-                  const CircularProgressIndicator(),
+                  Center(
+                    child: Image.network(
+                      data[ind].photos[0],
+                      fit: BoxFit.scaleDown,
+                    ),
+                  ),
+
                   Text(data[ind].title,textAlign: TextAlign.start,style: TextStyle(fontWeight: FontWeight.bold),),
                   SizedBox(height: 3,),
                   Text("${data[ind].price} ${getCurrency()}",textAlign: TextAlign.start,),
@@ -110,11 +103,11 @@ class FavoritesState extends State<FavoritesPage> {
                       Text(data[ind].date),
                       if(user!=null && data[ind].email!=user!.photoURL! || user==null) IconButton(
                         onPressed: () async {
-                          if(contains(data[ind].photoUrl)) {
-                            await DBProvider.db.removeFromFavs(data[ind].photoUrl);
+                          if(contains(data[ind].id.toString())) {
+                            await DBProvider.db.removeFromFavs(data[ind].id.toString());
                             setState(() {
                               for(FavItem i in favs) {
-                                if(i.id_ads==data[ind].photoUrl) {
+                                if(i.id_ads==data[ind].photos[0]) {
                                   setState(() {
                                     favs.remove(i);
                                   });
@@ -126,13 +119,13 @@ class FavoritesState extends State<FavoritesPage> {
                             final db = await DBProvider.db.database;
                             var table = await db!.rawQuery("SELECT MAX(id)+1 as id FROM MyDraft");
                             int id = table.first["id"]==null ? 0 : table.first["id"] as int;
-                            var tmp = FavItem(id: id, id_ads: data[ind].photoUrl);
+                            var tmp = FavItem(id: id, id_ads: data[ind].id.toString());
                             setState(() {
                               favs.add(tmp);
                             });
                             DBProvider.db.insert(tmp);
                           }
-                        }, icon: contains(data[ind].photoUrl)
+                        }, icon: contains(data[ind].id.toString())
                           ? Icon(Icons.favorite, color: Colors.red,) : Icon(Icons.favorite_border),
                       )
 
@@ -147,7 +140,7 @@ class FavoritesState extends State<FavoritesPage> {
   }
   Future<Widget> _getImage(BuildContext context, int ind) async {
     Widget m;
-    var st = (await FirebaseStorage.instance.ref(data[ind].photoUrl+".jpg").getDownloadURL().catchError((e) {
+    var st = (await FirebaseStorage.instance.ref(data[ind].photos[0]+".jpg").getDownloadURL().catchError((e) {
       m = FlutterLogo();
       return m;
     }));

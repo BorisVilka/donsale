@@ -1,11 +1,14 @@
 
 
+import 'dart:math';
+
 import 'package:Donsale/chat_page.dart';
 import 'package:Donsale/objects/chat.dart';
 import 'package:Donsale/objects/chat_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 class ChatsPage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
@@ -47,15 +50,37 @@ class ChatsState extends State<ChatsPage> {
    );
   }
   Widget buildEmpty() {
-    return const Center(
-      child: Padding(padding: EdgeInsets.all(20),
-        child: Text("Войдите или зарегистрируйтесь, чтобы добавлять объявления",
-          style: TextStyle(fontSize: 20),
-          textAlign: TextAlign.center,
-        ),
+    return Container(
+      alignment: Alignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text("Войдите или зарегистрируйтесь, чтобы добавлять объявления",
+            style: TextStyle(fontSize: 20),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 10,),
+          ElevatedButton(onPressed: () async {
+            launchTelegram();
+          }, child: Container(
+            width: 200,
+            child:  Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.send),
+                SizedBox(width: 20,),
+                Text("Поддержка")
+              ],
+            ),
+          )
+          ),
+        ],
       ),
     );
   }
+
 
   Widget buildSigned() {
     if(first) {
@@ -72,6 +97,7 @@ class ChatsState extends State<ChatsPage> {
       ),
     );
   }
+  var colors = [Colors.brown[200], Colors.blue, Colors.red, Colors.yellowAccent, Colors.amber, Colors.purple, Colors.lightGreenAccent, Colors.tealAccent, Colors.deepOrangeAccent];
   Widget buildItem(BuildContext context,int ind) {
     return Container(
       padding: EdgeInsets.all(2),
@@ -81,36 +107,40 @@ class ChatsState extends State<ChatsPage> {
         },
         child: Card(
           color: Colors.white,
-          child: Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(10),
-                child: CircleAvatar(
-                  backgroundColor: Colors.brown[200],
-                  radius: 20,
-                  child: Center(
-                    child: Text(
-                      ((data[ind].ads.author)
-                          .toUpperCase().isEmpty ? "П" : (data[ind].ads.author).toUpperCase())[0],
-                      style: const TextStyle(color: Colors.white),
+          child: Container(
+            padding: EdgeInsets.only(top: 5,bottom: 10),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(10),
+                  child: CircleAvatar(
+                    backgroundColor: colors[Random().nextInt(colors.length)],
+                    radius: 25,
+                    child: Center(
+                      child: Text(
+                        ((data[ind].ads.author)
+                            .toUpperCase().isEmpty ? "П" : (data[ind].ads.author).toUpperCase())[0],
+                        style: const TextStyle(color: Colors.white),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(data[ind].ads.title,style: TextStyle(fontWeight: FontWeight.bold),),
-                  SizedBox(height: 15,),
-                  Container(
-                    width: 250,
-                    child: Text(data[ind].messages[data[ind].messages.length-1].txt,maxLines: 1,style: TextStyle(
-                        overflow: TextOverflow.ellipsis
-                    ),softWrap: true,),
-                  )
-                ],
-              )
-            ],
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(data[ind].ads.author,style: TextStyle(fontWeight: FontWeight.bold),),
+                    Text(data[ind].ads.title),
+                    SizedBox(height: 10,),
+                    Container(
+                      width: 250,
+                      child: Text(data[ind].messages[data[ind].messages.length-1].txt,maxLines: 1,style: TextStyle(
+                          overflow: TextOverflow.ellipsis,color: Colors.grey[800]
+                      ),softWrap: true,),
+                    )
+                  ],
+                )
+              ],
+            ),
           ),
         ),
       ),
@@ -141,5 +171,14 @@ class ChatsState extends State<ChatsPage> {
         //data = data.takeWhile((value) => contains(value.photoUrl) && (user!=null && value.email!=(user!.email ?? "") || user==null)).toList();
       });
     });
+  }
+  void launchTelegram() async{
+    String url =
+        "https://t.me/helpdonsale";
+    print("launchingUrl: $url");
+    if (await canLaunch(url)) {
+      await launch(url);
+    }
+
   }
 }

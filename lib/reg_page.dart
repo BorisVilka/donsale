@@ -38,66 +38,84 @@ class RegState extends State<RegPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 40,vertical: 20),
               child: TextField(
-                decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    hintText: "Введите email",
+                decoration: InputDecoration(
+                   hintText: "Введите email",
                     fillColor: Colors.black12,
-                    filled: true
+                    filled: true,
+                    errorText: email.text.isNotEmpty ? null : "Введите email"
                 ),
                 controller: email,
+                keyboardType: TextInputType.emailAddress,
+                enableSuggestions: true,
+                autocorrect: true,
+                onChanged: (s) {setState(() {});},
               ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
               child: TextField(
-                decoration: const InputDecoration(
-                    border: InputBorder.none,
+                decoration: InputDecoration(
                     hintText: "Введите телефон",
                     fillColor: Colors.black12,
-                    filled: true
+                    filled: true,
+                    errorText: num.text.isNotEmpty ? null : "Введите номер телефона"
                 ),
                 controller: num,
+                keyboardType: TextInputType.phone,
+                enableSuggestions: true,
+                autocorrect: true,
+                  onChanged: (s) {setState(() {});},
               ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 40,vertical: 10),
               child: TextField(
-                decoration: const InputDecoration(
-                    border: InputBorder.none,
+                decoration:InputDecoration(
                     hintText: "Введите имя",
                     fillColor: Colors.black12,
-                    filled: true
+                    filled: true,
+                    errorText: name.text.isNotEmpty ? null : "Введите имя"
                 ),
                 controller: name,
+                keyboardType: TextInputType.name,
+                enableSuggestions: true,
+                autocorrect: true,
+                onChanged: (s) {setState(() {});},
               ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 40,vertical: 20),
               child: TextField(
-                decoration: const InputDecoration(
-                    border: InputBorder.none,
+                decoration: InputDecoration(
                     hintText: "Введите фамилия",
                     fillColor: Colors.black12,
-                    filled: true
+                    filled: true,
+                    errorText: sur.text.isNotEmpty ? null : "Введите фамилию"
                 ),
                 controller: sur,
+                keyboardType: TextInputType.name,
+                enableSuggestions: true,
+                autocorrect: true,
+                onChanged: (s) {setState(() {});},
               ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 40),
               child: TextField(
-                decoration: const InputDecoration(
-                    border: InputBorder.none,
+                decoration: InputDecoration(
                     hintText: "Введите пароль",
                     fillColor: Colors.black12,
-                    filled: true
+                    filled: true,
+                    errorText: pass.text.isNotEmpty ? null : "Введите пароль"
                 ),
                 obscureText: true,
                 enableSuggestions: false,
                 autocorrect: false,
                 controller: pass,
+                onChanged: (s) {setState(() {});},
               ),
             ),
+            SizedBox(height: 10,),
             Text("Пароль должен быть длиннее 6 символов"),
             const SizedBox(height: 35,),
             ElevatedButton(onPressed: () async {
